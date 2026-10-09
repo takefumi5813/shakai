@@ -259,8 +259,16 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
 
   <section id="play" class="hide">
     <div class="meta"><span id="pos"></span><span class="combo" id="combo"></span><button class="link" id="quit">やめる</button></div>
-    <div class="enemy" id="enemy"><span class="arena-label">SKY REALM · 天空の遺跡</span><span class="eicon" id="eicon" aria-hidden="true"></span><span class="ename" id="ename"></span><span class="ehp"><i id="ehp"></i></span><span class="ehpn" id="ehpn"></span></div>
-    <div class="battle-party"><span class="portrait" id="battleportrait" aria-hidden="true"></span><div><b id="battlejob"></b><small>正解を力にかえて、敵に立ち向かおう。</small></div><span class="party-level" id="battlelevel"></span></div>
+    <div class="battle-stage">
+      <div class="enemy" id="enemy"><span class="arena-label">天空の遺跡</span><span class="eicon" id="eicon" aria-hidden="true"></span><span class="ename" id="ename"></span><span class="ehp"><i id="ehp"></i></span><span class="ehpn" id="ehpn"></span></div>
+      <div class="battle-party">
+        <span class="portrait" id="battleportrait" aria-hidden="true"></span>
+        <div class="party-details"><div class="party-heading"><b id="battlejob"></b><span class="party-level" id="battlelevel"></span></div>
+          <small class="ability-label">装備中のアビリティ</small>
+          <ul class="battle-abilities" id="battleabilities"></ul>
+        </div>
+      </div>
+    </div>
     <div class="undo"><button class="link hide" id="undo" type="button">← 押しまちがえた(ひとつ前にもどる)</button></div>
     <div class="bar"><i id="prog"></i></div>
     <div class="panel">
@@ -1099,9 +1107,17 @@ window.onerror = function(msg, src, line, col){
   }
 
   function render(){
-    $('battleportrait').innerHTML = charSVG(jobOf().id, 64);
+    $('battleportrait').innerHTML = charSVG(jobOf().id, 100);
     $('battlejob').textContent = jobOf().n;
     $('battlelevel').textContent = 'Lv. ' + lvOf(P.xp).lv;
+    var abilities = $('battleabilities'), eq = equipped();
+    abilities.innerHTML = '';
+    eq.forEach(function(id){
+      var li = document.createElement('li'), name = document.createElement('span'), detail = document.createElement('small');
+      name.textContent = ABIL[id].n; detail.textContent = ABIL[id].d;
+      li.appendChild(name); li.appendChild(detail); abilities.appendChild(li);
+    });
+    if (!eq.length){ var empty = document.createElement('li'); empty.className = 'empty'; empty.textContent = 'まだ装備していません'; abilities.appendChild(empty); }
     var it = queue[pos], q = it.q;
     if (mode === 'quest'){
       var qr = questRec(), qt = questItems().length, qok = questItems().filter(function(x){ return qr.ok[x.id]; }).length;
