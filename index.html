@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>社会 一問一答</title>
+<title>社会 一問一答 | 知識の冒険</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
@@ -213,22 +213,33 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
 @media (prefers-reduced-motion: reduce){.burst{display:none}.yay,.stamp{animation:fadeonly 1200ms forwards}.shake{animation:none}@keyframes fadeonly{0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:0}}}
 
 </style>
+<link rel="stylesheet" href="assets/rpg-theme.css">
 </head>
 <body>
 <div class="wrap">
 
-  <section id="home">
+  <section id="title" class="title-screen" aria-labelledby="title-name">
+    <div class="book-emblem" aria-hidden="true"><span>✦</span></div>
+    <p class="eyebrow">THE CHRONICLE OF KNOWLEDGE</p>
+    <h1 class="realm-title" id="title-name">社会 一問一答</h1>
+    <div class="subtitle">知 識 の 冒 険</div>
+    <p class="title-copy">ひとつの答えが、きみの力になる。<br>まだ見ぬ世界へ、学びの旅に出よう。</p>
+    <button class="btn" id="openbook" type="button">✦ 冒険の書を開く</button>
+    <p class="save-note">冒険の記録は、このブラウザに自動で保存されます。</p>
+  </section>
+  <section id="home" class="hide">
+    <div class="topline"><span class="eyebrow">ADVENTURE JOURNAL</span><button class="link" id="backtitle" type="button">タイトルへ</button></div>
+    <div class="realm-banner"><p class="eyebrow">知識の冒険</p><h1 class="realm-title">冒険のしたく</h1><p>知識を集めて、まだ見ぬ職業へ。</p></div>
     <div class="hud"><span class="lv" id="lvH"></span><span class="pt" id="ptH"></span><button class="mute" id="mute" type="button" aria-label="音のオンオフ">🔊</button></div>
-    <button class="jobbar" id="jobbtn" type="button"><span class="jicon" id="jicon"></span><span class="jtxt"><b id="jname"></b><small id="jprog"></small></span><span class="jgo">職業をみる ›</span></button>
+    <button class="jobbar" id="jobbtn" type="button"><span class="jicon" id="jicon"></span><span class="jtxt"><b id="jname"></b><small id="jprog"></small></span><span class="jgo">転職の神殿 ›</span></button>
     <div id="quest" class="quest hide"></div>
-    <h1>社会 一問一答</h1>
-    <p class="lead">問題を読んで、頭の中で答えてから「答えを見る」を押そう。</p>
+    <p class="journey-note"><strong>旅の心得</strong>　問題を読んで頭の中で答えよう。正解するたび、きみの冒険者が強くなる。</p>
     <div class="panel">
-      <h2>どこから出す?</h2>
+      <h2>01 — 冒険する範囲</h2>
       <div class="chips" id="modes"></div>
-      <h2>問題の数</h2>
+      <h2>02 — 今回の冒険の長さ</h2>
       <div class="chips" id="counts"></div>
-      <button class="btn" id="start">スタート</button>
+      <button class="btn" id="start">✦ 冒険に出発する</button>
       <p class="info" id="dueinfo"></p>
     </div>
     <div class="foot">
@@ -248,17 +259,20 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
 
   <section id="play" class="hide">
     <div class="meta"><span id="pos"></span><span class="combo" id="combo"></span><button class="link" id="quit">やめる</button></div>
-    <div class="enemy" id="enemy"><span class="eicon" id="eicon"></span><span class="ename" id="ename"></span><span class="ehp"><i id="ehp"></i></span><span class="ehpn" id="ehpn"></span></div>
+    <div class="enemy" id="enemy"><span class="arena-label">SKY REALM · 天空の遺跡</span><span class="eicon" id="eicon" aria-hidden="true"></span><span class="ename" id="ename"></span><span class="ehp"><i id="ehp"></i></span><span class="ehpn" id="ehpn"></span></div>
+    <div class="battle-party"><span class="portrait" id="battleportrait" aria-hidden="true"></span><div><b id="battlejob"></b><small>正解を力にかえて、敵に立ち向かおう。</small></div><span class="party-level" id="battlelevel"></span></div>
     <div class="undo"><button class="link hide" id="undo" type="button">← 押しまちがえた(ひとつ前にもどる)</button></div>
     <div class="bar"><i id="prog"></i></div>
     <div class="panel">
+      <p class="battle-heading">◆ 知識の試練</p>
       <div class="tags"><span class="tag" id="tag"></span><span class="unit" id="unit"></span><span class="rank" id="rank" aria-label="ランク"></span></div>
       <div class="ctx hide" id="ctx"></div>
       <div class="fig hide" id="fig"><img id="figimg" alt="問題の図"></div>
       <div class="target hide" id="target"></div>
       <div class="q" id="q"></div>
       <div class="tblwrap hide" id="tblwrap"><table class="tbl" id="tbl"></table></div>
-      <button class="btn" id="show">答えを見る</button>
+      <button class="btn" id="show">▶ こたえる · 答えを見る</button>
+      <p class="command-help">頭の中で答えてから、答えを確認して自己採点しよう。</p>
       <div id="reveal" class="hide">
         <div class="ans">
           <div class="lab">答え</div>
@@ -266,8 +280,8 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
           <p class="n hide" id="n"></p>
         </div>
         <div class="row">
-          <button class="btn ng" id="bad">まちがえた</button>
-          <button class="btn ok" id="good">できた</button>
+          <button class="btn ng" id="bad">復習 · おぼえる</button>
+          <button class="btn ok" id="good">正解 · こうげき</button>
         </div>
       </div>
     </div>
@@ -275,7 +289,7 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
 
   <section id="result" class="hide">
     <div class="panel">
-      <h2>けっか</h2>
+      <h2>冒険の記録</h2>
       <div class="score"><span id="sc"></span><small> / <span id="tot"></span></small></div>
       <p class="msg" id="rmsg"></p>
       <p class="lvup" id="rpt"></p>
@@ -286,7 +300,7 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
       </div>
       <div class="undo"><button class="link hide" id="undo2" type="button">← 最後の問題を押しまちがえた(もどる)</button></div>
       <div class="row">
-        <button class="btn ghost" id="home2">はじめに戻る</button>
+        <button class="btn ghost" id="home2">冒険のしたくへ</button>
         <button class="btn" id="again">つづける</button>
       </div>
     </div>
@@ -296,7 +310,7 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
 
 <section id="jobs" class="hide">
   <div class="wrap">
-    <div class="meta"><b>職業</b><button class="link" id="jobsclose">とじる</button></div>
+    <div class="meta"><b>✦ 転職の神殿</b><button class="link" id="jobsclose">とじる</button></div>
     <p class="lead" id="jobslead"></p>
     <div id="jobtiers"></div>
   </div>
@@ -921,7 +935,7 @@ window.onerror = function(msg, src, line, col){
   }
 
   // ===== 敵(1回のセッションに1体) =====
-  var MONSTERS = [['👾','スライムもどき'],['🐗','あばれイノシシ'],['🦇','やみコウモリ'],['🐍','どくヘビ'],['👻','さまようぼうれい'],['🧟','ゾンビ'],['🐙','大ダコ'],['🦂','さばくのサソリ'],['🐉','ドラゴン'],['🦖','ティラノ'],['🧌','トロル'],['🦈','ジョーズ'],['👹','おに'],['🤖','からくり兵'],['🐲','りゅうおう']];
+  var MONSTERS = [['m0','こもれびの精'],['m1','宵やみコウモリ'],['m2','遺跡の石の番人'],['m3','天空のこりゅう']];
   var E = null;
   function newEnemy(n){
     var m = pick(MONSTERS); E = {i:m[0], n:m[1], hp: n * 14, max: n * 14, dead:false};
@@ -931,7 +945,7 @@ window.onerror = function(msg, src, line, col){
   }
   function drawEnemy(){
     if (!E) return;
-    $('eicon').textContent = E.i; $('ename').textContent = E.n;
+    $('eicon').innerHTML = '<span class="monster-art ' + E.i + '"></span>'; $('ename').textContent = E.n;
     $('ehp').style.width = Math.max(0, E.hp / E.max * 100) + '%'; $('ehpn').textContent = Math.max(0, E.hp) + '/' + E.max;
     $('enemy').classList.toggle('dead', E.dead);
   }
@@ -1042,7 +1056,14 @@ window.onerror = function(msg, src, line, col){
   // ===== 出題 =====
   var queue = [], pos = 0, first = 0, init = 0, right = 0, wrongs = [], combo = 0, gainedTotal = 0, busy = false, last = null, jobClearedNow = null, guards = 0;
   function shuffle(a){ a = a.slice(); for (var i = a.length-1; i > 0; i--){ var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function show(id){ ['home','play','result'].forEach(function(s){ $(s).classList.toggle('hide', s !== id); }); window.scrollTo(0,0); }
+  function show(id){
+    ['title','home','play','result'].forEach(function(s){ $(s).classList.toggle('hide', s !== id); });
+    window.scrollTo(0,0);
+    var focusTarget = id === 'title' ? $('openbook') : id === 'home' ? $('start') : id === 'play' ? $('show') : $('home2');
+    if (focusTarget && !focusTarget.disabled) focusTarget.focus({preventScroll:true});
+  }
+  $('openbook').onclick = function(){ buildHome(); show('home'); };
+  $('backtitle').onclick = function(){ show('title'); };
 
   function beginQuest(){
     var d = questToday(); if (!d) { buildHome(); show('home'); return; }
@@ -1078,6 +1099,9 @@ window.onerror = function(msg, src, line, col){
   }
 
   function render(){
+    $('battleportrait').innerHTML = charSVG(jobOf().id, 64);
+    $('battlejob').textContent = jobOf().n;
+    $('battlelevel').textContent = 'Lv. ' + lvOf(P.xp).lv;
     var it = queue[pos], q = it.q;
     if (mode === 'quest'){
       var qr = questRec(), qt = questItems().length, qok = questItems().filter(function(x){ return qr.ok[x.id]; }).length;
@@ -1346,7 +1370,7 @@ window.onerror = function(msg, src, line, col){
   $('jobsclose').onclick = function(){ $('jobs').classList.add('hide'); $('jobask').classList.add('hide'); buildHome(); };
   $('start').onclick = begin;
   $('again').onclick = function(){ if (mode === 'quest'){ mode = 'all'; buildHome(); show('home'); } else begin(); };
-  $('show').onclick = function(){ $('show').classList.add('hide'); $('reveal').classList.remove('hide'); };
+  $('show').onclick = function(){ $('show').classList.add('hide'); $('reveal').classList.remove('hide'); $('good').focus({preventScroll:true}); };
   $('good').onclick = function(){ answer(true); };
   $('bad').onclick  = function(){ answer(false); };
   $('undo').onclick = undo;
