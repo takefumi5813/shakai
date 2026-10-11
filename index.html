@@ -1582,7 +1582,7 @@ window.onerror = function(msg, src, line, col){
       var ic = document.createElement('div'); ic.className = 'abic'; ic.innerHTML = charSVG(j.id, 40); row.appendChild(ic);
       var tx = document.createElement('div'); tx.className = 'abtx';
       var nm = document.createElement('b'); nm.textContent = abilityName(j.id); tx.appendChild(nm);
-      var ds = document.createElement('small'); ds.textContent = a.d + '(' + j.n + ')・練度の正解数 ' + masteryCount(j.id) + ' / 1000'; tx.appendChild(ds);
+      var ds = document.createElement('small'); ds.textContent = a.d + '(' + j.n + ')'; tx.appendChild(ds);
       row.appendChild(tx);
       var bt = document.createElement('button'); bt.type = 'button';
       if (on){ bt.className = 'mini off'; bt.textContent = 'はずす'; }
