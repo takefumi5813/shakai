@@ -125,7 +125,7 @@ h1{font-size:26px;font-weight:900;margin:8px 0 4px}
 .job b{display:block;font-size:15px;font-weight:900;margin-top:4px}
 .job small{display:block;font-size:11px;color:var(--sub);line-height:1.4;margin-top:2px}
 .job.cleared{border-color:#1b8a5a;background:var(--card)}
-.job.cleared b::after{content:' ✓';color:#1b8a5a}
+.job.cleared b::after{content:' ☆';color:#1b8a5a}
 .job.current{border-color:var(--primary);box-shadow:0 0 0 3px var(--soft)}
 .job.avail{opacity:.6;filter:grayscale(1)}
 .abilsec{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px}
@@ -956,6 +956,15 @@ window.onerror = function(msg, src, line, col){
   var MAXAB = 3;
   function learned(id){ return !!(P.jobs && P.jobs[id]) && !!ABIL[id]; }
   function equipped(){ return (P.abil || []).filter(learned).slice(0, MAXAB); }
+  function masteryCount(id){ return Math.max(0, Math.min(1000, Math.floor(Number((P.mastery || {})[id]) || 0))); }
+  function masteryLv(id){ return Math.min(99, 1 + Math.floor(98 * Math.sqrt(masteryCount(id) / 1000))); }
+  function abilityName(id){ return ABIL[id].n + ' Lv.' + masteryLv(id); }
+  function trainAbilities(ok){
+    if (!ok || mode !== 'all') return;
+    P.mastery = P.mastery || {};
+    equipped().forEach(function(id){ P.mastery[id] = Math.min(1000, masteryCount(id) + 1); });
+    saveP();
+  }
   function eff(k){   // つけているアビリティの効果の合計(倍率系は最大値)
     var v = 0;
     equipped().forEach(function(id){ var e = ABIL[id].e[k]; if (e){ v = (k === 'critx' || k === 'killx') ? Math.max(v, e) : v + e; } });
@@ -980,8 +989,12 @@ window.onerror = function(msg, src, line, col){
     if (jobAvail(j)) return 'avail';
     return 'locked';
   }
-  function jobLv(){ var l = lvOf(P.xp).lv; return Math.max(1, Math.min(10, l - (P.jobStart || 1) + 1)); }
-  function jobDone(){ return lvOf(P.xp).lv >= (P.jobStart || 1) + 9 || lvOf(P.xp).lv >= MAXLV; }
+  // 全71職業で合計899レベル上昇。Lv.1から順次転職してLv.900でコンプリート。
+  var JOB_LEVEL_SPANS = [4, 7, 11, 12, 15, 18, 19, 21, 11];
+  function jobLevelSpan(){ return JOB_LEVEL_SPANS[jobOf().t]; }
+  function jobProgress(){ return Math.max(0, lvOf(P.xp).lv - (P.jobStart || 1)); }
+  function jobDone(){ return jobProgress() >= jobLevelSpan() || lvOf(P.xp).lv >= MAXLV; }
+  function jobLv(){ return jobDone() ? 10 : Math.min(9, 1 + Math.floor(jobProgress() * 9 / jobLevelSpan())); }
   function initJob(){
     if (!P.job){ P.job = 'nojob'; P.jobStart = lvOf(P.xp).lv; P.jobs = P.jobs || {}; saveP(); }
   }
@@ -1002,7 +1015,7 @@ window.onerror = function(msg, src, line, col){
     $('mute').textContent = P.mute ? '🔇' : '🔊';
     var j = jobOf();
     $('jicon').innerHTML = charSVG(j.id, 52); $('jname').textContent = j.n;
-    var ab = equipped().map(function(id){ return ABIL[id].n; });
+    var ab = equipped().map(function(id){ return abilityName(id); });
     $('jprog').textContent = (jobCleared(j.id) ? 'クリアずみ(転職できます)' : '職業レベル ' + jobLv() + ' / 10' + (jobDone() ? '・クリア!' : '')) +
       (ab.length ? ' ／ アビリティ: ' + ab.join('・') : '');
   }
@@ -1186,7 +1199,7 @@ window.onerror = function(msg, src, line, col){
   }
 
   // ===== モード =====
-  var mode = 'all', count = 10;
+  var mode = 'next', count = 10;
   function nextClass(){
     var n = CFG.nextclass; if (!n || !n.units) return null;
     var u = n.units.filter(isOpen);
@@ -1210,6 +1223,8 @@ window.onerror = function(msg, src, line, col){
   }
   function poolFor(m){ return DATA.filter(modeFilter(m)); }
   function dueFor(m){ return poolFor(m).filter(isDue); }
+  function deepUnlocked(){ return dueFor('next').length === 0 && dueFor('gnorev').length === 0; }
+  function deepLockText(){ return '「ダンジョン」と「グランドダンジョン」の問題が残っているため、ディープダンジョンは開かれていません。'; }
   function nextDueText(m){
     var up = poolFor(m).filter(function(q){ return !isDue(q); });
     if (!up.length) return '';
@@ -1221,31 +1236,22 @@ window.onerror = function(msg, src, line, col){
   function buildHome(){
     checkJobClear();
     hud();
-    var g = nextGnorev(), box = $('modes'); box.innerHTML = '';
+    var g = nextGnorev(), ncl = nextClass(), unlocked = deepUnlocked(), box = $('modes'); box.innerHTML = '';
+    if (mode === 'quest' || (mode === 'all' && !unlocked) || (mode === 'next' && !ncl) || (mode === 'gnorev' && !g)) mode = ncl ? 'next' : g ? 'gnorev' : 'all';
     function chip(key, title, sub, disabled){
       var b = document.createElement('button');
       b.className = 'chip'; b.type = 'button'; b.disabled = !!disabled;
       b.setAttribute('aria-pressed', mode === key ? 'true' : 'false');
       b.appendChild(document.createTextNode(title));
-      if (sub && disabled){ var s = document.createElement('small'); s.textContent = sub; b.appendChild(s); }
+      var sm = document.createElement('small'); sm.textContent = sub; b.appendChild(sm);
       b.onclick = function(){ mode = key; buildHome(); };
       box.appendChild(b);
     }
-    chip('all', '全部', '授業でやった回すべて(4年・コアプラス・白地図トレーニングなどの関連問題もふくむ)');
-    var ncl = nextClass();
-    if (ncl){
-      chip('next', '次回復習テスト対策', ncl.label + '・テキストと知識の総確認', false);
-    } else {
-      chip('next', '次回復習テスト対策', '次回の授業の範囲はまだ入っていません', true);
-      if (mode === 'next') mode = 'all';
-    }
-    if (g){
-      var pp = g.test.split('-'), md = (+pp[1]) + '/' + (+pp[2]);
-      chip('gnorev', '次回グノレブ対策', g.name + '(' + md + ')・第' + g.from + '〜' + g.to + '回・テキストと知識の総確認', false);
-    } else {
-      chip('gnorev', '次回グノレブ対策', '次のグノレブの範囲はまだ入っていません', true);
-      if (mode === 'gnorev') mode = 'all';
-    }
+    chip('next', 'ダンジョン', '(復習テスト用)' + (ncl ? '' : '・範囲はまだ入っていません'), !ncl);
+    chip('gnorev', 'グランドダンジョン', '(グノレブ対策)' + (g ? '' : '・範囲はまだ入っていません'), !g);
+    chip('all', 'ディープダンジョン', '(全範囲)', !unlocked);
+    var notice = document.createElement('p'); notice.className = 'abnote';
+    notice.textContent = (unlocked ? 'ディープダンジョン解放中。' : deepLockText()) + 'アビリティの練度はディープダンジョンでのみ上がるよ。'; box.appendChild(notice);
     var cb = $('counts'); cb.innerHTML = '';
     [[5,'5問'],[10,'10問'],[20,'20問'],[0,'ぜんぶ']].forEach(function(p){
       var b = document.createElement('button');
@@ -1293,7 +1299,7 @@ window.onerror = function(msg, src, line, col){
   }
   function begin(){
     if (mode === 'quest') mode = 'all';
-    if (questLocked()){ buildHome(); show('home'); return; }
+    if (questLocked() || (mode === 'all' && !deepUnlocked())){ buildHome(); show('home'); return; }
     var pool = shuffle(dueFor(mode));
     if (!pool.length){ buildHome(); show('home'); return; }
     if (count > 0) pool = pool.slice(0, count);
@@ -1317,7 +1323,7 @@ window.onerror = function(msg, src, line, col){
     abilities.innerHTML = '';
     eq.forEach(function(id){
       var li = document.createElement('li'), name = document.createElement('span'), detail = document.createElement('small');
-      name.textContent = ABIL[id].n; detail.textContent = ABIL[id].d;
+      name.textContent = abilityName(id); detail.textContent = ABIL[id].d;
       li.appendChild(name); li.appendChild(detail); abilities.appendChild(li);
     });
     if (!eq.length){ var empty = document.createElement('li'); empty.className = 'empty'; empty.textContent = 'まだ装備していません'; abilities.appendChild(empty); }
@@ -1412,7 +1418,7 @@ window.onerror = function(msg, src, line, col){
     if (!last || busy) return;
     pos = last.pos; first = last.first; right = last.right; wrongs.length = last.nw; combo = last.combo; gainedTotal = last.gt;
     if (mode === 'quest'){ queue.length = last.qlen; var qrr = questRec(); if (last.qok) qrr.ok[last.sid] = 1; else delete qrr.ok[last.sid]; qrr.done = false; }
-    P.xp = last.xp; P.jobs = JSON.parse(last.jobs); if (last.daily) P.daily = JSON.parse(last.daily); dailyNow = last.dn || 0; saveP(); jobClearedNow = last.jc; guards = last.guards;
+    P.xp = last.xp; P.jobs = JSON.parse(last.jobs); if (last.daily) P.daily = JSON.parse(last.daily); dailyNow = last.dn || 0; P.mastery = JSON.parse(last.mastery); saveP(); jobClearedNow = last.jc; guards = last.guards;
     if (E){ E.hp = last.ehp; E.dead = last.edead; drawEnemy(); }
     if (last.s) S[last.sid] = last.s; else delete S[last.sid];
     saveS(); last = null; clearFx();
@@ -1425,7 +1431,7 @@ window.onerror = function(msg, src, line, col){
     var it = queue[pos], q = it.q, gained = 0, rankUp = false, L2 = 0;
     // 押しまちがえ用に、直前の状態をとっておく
     last = {pos:pos, first:first, right:right, nw:wrongs.length, combo:combo, gt:gainedTotal, xp:P.xp, sid:q.id, s:S[q.id] ? {l:S[q.id].l, d:S[q.id].d} : null,
-            ehp:E ? E.hp : 0, edead:E ? E.dead : false, jobs:JSON.stringify(P.jobs || {}), jc:jobClearedNow, guards:guards,
+            ehp:E ? E.hp : 0, edead:E ? E.dead : false, jobs:JSON.stringify(P.jobs || {}), mastery:JSON.stringify(P.mastery || {}), jc:jobClearedNow, guards:guards,
             qlen:queue.length, qok: mode === 'quest' ? !!questRec().ok[q.id] : null, daily: JSON.stringify(dailyRec()), dn: dailyNow};
     if (mode === 'quest'){
       if (ok){ questRec().ok[q.id] = 1; saveP(); }
@@ -1445,6 +1451,7 @@ window.onerror = function(msg, src, line, col){
         setTimeout(function(){ var m = document.createElement('div'); m.className = 'act'; m.style.top = '42%'; m.style.background = '#1b8a5a'; m.textContent = '📅 デイリークエスト クリア! ごほうび +' + db + 'pt'; fx.appendChild(m); tone([659, 784, 988, 1319], 0.12); }, 450);
       }
     }
+    trainAbilities(ok);
     if (ok){
       combo++;
       var tags = [];
@@ -1546,16 +1553,16 @@ window.onerror = function(msg, src, line, col){
     var box = $('jobtiers'); box.innerHTML = '';
     var cur = jobOf(), n = Object.keys(P.jobs || {}).length;
     $('jobslead').textContent = 'いまの職業: ' + cur.n + '(職業レベル ' + jobLv() + '/10)・クリアした職業 ' + n + ' / ' + JOBS.length +
-      (jobDone() || jobCleared(cur.id) ? '。転職できます。' : '。職業レベルが10になると転職できます。');
+      (jobDone() || jobCleared(cur.id) ? '。転職できます。' : '。あと' + (jobLevelSpan() - jobProgress()) + 'レベルでクリア・転職できます。');
     var asec = document.createElement('div'); asec.className = 'tier abilsec';
     var ah = document.createElement('h3'); ah.textContent = 'アビリティ'; asec.appendChild(ah);
-    var note = document.createElement('p'); note.className = 'abnote'; note.textContent = '職業をクリアすると1つおぼえます。つけられるのは' + MAXAB + 'つまで。'; asec.appendChild(note);
+    var note = document.createElement('p'); note.className = 'abnote'; note.textContent = '職業をクリアすると1つおぼえます。つけられるのは' + MAXAB + 'つまで。アビリティの練度はディープダンジョンでのみ上がるよ。装備中のアビリティは正解するたびに成長し、1000正解でLv.99!'; asec.appendChild(note);
     var slots = document.createElement('div'); slots.className = 'slots';
     var eq = equipped();
     for (var k = 0; k < MAXAB; k++){
       var sl = document.createElement('div'); sl.className = 'slot' + (eq[k] ? ' full' : '');
       var lab = document.createElement('small'); lab.textContent = 'スロット' + (k + 1); sl.appendChild(lab);
-      var nm = document.createElement('b'); nm.textContent = eq[k] ? ABIL[eq[k]].n : '(あき)'; sl.appendChild(nm);
+      var nm = document.createElement('b'); nm.textContent = eq[k] ? abilityName(eq[k]) : '(あき)'; sl.appendChild(nm);
       if (eq[k]){
         var ds = document.createElement('span'); ds.textContent = ABIL[eq[k]].d; sl.appendChild(ds);
         var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'mini'; rb.textContent = 'はずす';
@@ -1574,8 +1581,8 @@ window.onerror = function(msg, src, line, col){
       var row = document.createElement('div'); row.className = 'abrow' + (on ? ' on' : '');
       var ic = document.createElement('div'); ic.className = 'abic'; ic.innerHTML = charSVG(j.id, 40); row.appendChild(ic);
       var tx = document.createElement('div'); tx.className = 'abtx';
-      var nm = document.createElement('b'); nm.textContent = a.n; tx.appendChild(nm);
-      var ds = document.createElement('small'); ds.textContent = a.d + '(' + j.n + ')'; tx.appendChild(ds);
+      var nm = document.createElement('b'); nm.textContent = abilityName(j.id); tx.appendChild(nm);
+      var ds = document.createElement('small'); ds.textContent = a.d + '(' + j.n + ')・練度の正解数 ' + masteryCount(j.id) + ' / 1000'; tx.appendChild(ds);
       row.appendChild(tx);
       var bt = document.createElement('button'); bt.type = 'button';
       if (on){ bt.className = 'mini off'; bt.textContent = 'はずす'; }
@@ -1683,7 +1690,7 @@ window.onerror = function(msg, src, line, col){
 
   initJob();
   buildHome();
-  window.__ichimon = { charSVG: charSVG, S: function(){ return S; }, P: function(){ return P; }, WAIT: WAIT, DATA: DATA, CFG: CFG, JOBS: JOBS, lvOf: lvOf, changeJob: changeJob, ABIL: ABIL, eff: eff, toggleAbil: toggleAbil };
+  window.__ichimon = { charSVG: charSVG, S: function(){ return S; }, P: function(){ return P; }, WAIT: WAIT, DATA: DATA, CFG: CFG, JOBS: JOBS, lvOf: lvOf, changeJob: changeJob, ABIL: ABIL, eff: eff, toggleAbil: toggleAbil, jobLevelSpan: jobLevelSpan, jobDone: jobDone, masteryLv: masteryLv, masteryCount: masteryCount, trainAbilities: trainAbilities, deepUnlocked: deepUnlocked, dueFor: dueFor, buildHome: buildHome, begin: begin, answer: answer, undo: undo };
 })();
 </script>
 </body>
