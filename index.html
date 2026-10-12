@@ -438,6 +438,7 @@ button{touch-action:manipulation}
           <button class="btn ng" id="bad">復習 · おぼえる</button>
           <button class="btn ok" id="good">正解 · こうげき</button>
         </div>
+        <button class="btn hide" id="reviewnext" type="button">確認した · 次へ</button>
       </div>
     </div>
   </section>
@@ -1345,7 +1346,9 @@ window.onerror = function(msg, src, line, col){
     show('play'); render();
   }
 
+  var waitingForNext = false, answerTimer = null;
   function render(){
+    waitingForNext = false; $('reviewnext').classList.add('hide');
     $('battleportrait').innerHTML = charSVG(jobOf().id, 100);
     $('battlejob').textContent = jobOf().n;
     $('battlelevel').textContent = 'Lv. ' + lvOf(P.xp).lv;
@@ -1457,7 +1460,7 @@ window.onerror = function(msg, src, line, col){
   }
 
   function answer(ok){
-    if (busy) return;
+    if (busy || waitingForNext) return;
     var it = queue[pos], q = it.q, gained = 0, rankUp = false, L2 = 0;
     // 押しまちがえ用に、直前の状態をとっておく
     last = {pos:pos, first:first, right:right, nw:wrongs.length, combo:combo, gt:gainedTotal, xp:P.xp, sid:q.id, s:S[q.id] ? {l:S[q.id].l, d:S[q.id].d} : null,
@@ -1520,9 +1523,19 @@ window.onerror = function(msg, src, line, col){
     }
     pos++;
     busy = true;
-    setTimeout(function(){
-      busy = false; clearFx();
-      if (pos >= queue.length) finish(); else render();
+    if (!ok){
+      waitingForNext = true;
+      $('reveal').classList.remove('hide'); $('grade').classList.add('hide');
+      $('help').textContent = '答えを確認したら、次へ進もう。';
+      $('reviewnext').textContent = pos >= queue.length ? '確認した · 結果を見る' : '確認した · 次へ';
+      $('reviewnext').disabled = true; $('reviewnext').classList.remove('hide');
+    }
+    answerTimer = setTimeout(function(){
+      answerTimer = null; busy = false; clearFx();
+      if (waitingForNext){
+        $('reviewnext').disabled = false;
+        $('reviewnext').focus({preventScroll:true});
+      } else if (pos >= queue.length) finish(); else render();
     }, eff('haste') ? 900 : 1500);
   }
 
@@ -1676,10 +1689,18 @@ window.onerror = function(msg, src, line, col){
   $('show').onclick = function(){ $('show').classList.add('hide'); $('reveal').classList.remove('hide'); $('good').focus({preventScroll:true}); };
   $('good').onclick = function(){ answer(true); };
   $('bad').onclick  = function(){ answer(false); };
+  $('reviewnext').onclick = function(){
+    if (busy || !waitingForNext) return;
+    waitingForNext = false;
+    if (pos >= queue.length) finish(); else render();
+  };
   $('undo').onclick = undo;
   $('undo2').onclick = undo;
   $('figimg').onclick = function(){ $('fig').classList.toggle('big'); };
-  $('quit').onclick = function(){ if (mode === 'quest') mode = 'all'; buildHome(); show('home'); };
+  $('quit').onclick = function(){
+    clearTimeout(answerTimer); answerTimer = null; waitingForNext = false; busy = false; clearFx();
+    if (mode === 'quest') mode = 'all'; buildHome(); show('home');
+  };
   $('home2').onclick = function(){ if (mode === 'quest') mode = 'all'; buildHome(); show('home'); };
   $('mute').onclick = function(){ P.mute = !P.mute; saveP(); hud(); };
   // 記録のバックアップ／引っこし(端末やファイルを変えても記録を持ちこせるように)
