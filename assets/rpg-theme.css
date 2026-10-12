@@ -84,3 +84,50 @@ button{touch-action:manipulation}
 }
 @media(max-width:359px){.battle-stage{gap:8px}.battle-stage .battle-party{padding:8px}.battle-stage .portrait{width:44px;margin-right:5px}.battle-stage .portrait img{width:44px!important;height:44px!important}.party-heading b{font-size:12px}.battle-stage .enemy .eicon{width:100px;height:100px;margin-left:-50px;top:36px}#play .q{font-size:20px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.hero-sprite,.dmg,.act,.glyph,.ouch,.yay,.stamp{animation:fadeonly 900ms forwards!important}}
+
+.daily{border:2px solid #c99769;background:#2c2a3e;color:#fff0d8;border-radius:6px;padding:14px 16px;margin:0 0 16px}
+.daily.done{background:#15392e;border-color:#5fc49a}
+.daily .dh{font-size:18px;font-weight:900;margin:0 0 4px;letter-spacing:.04em}
+.daily .ds{font-size:13px;margin:0 0 8px;font-weight:700;line-height:1.6}
+.daily .dbar{height:14px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden;margin:0 0 6px}
+.daily .dbar i{display:block;height:100%;background:linear-gradient(90deg,#f2b01e,#ffd54a);border-radius:99px;transition:width .4s}
+.daily.done .dbar i{background:linear-gradient(90deg,#3ac87a,#7affb0)}
+.daily .dn{font-size:22px;font-weight:900;margin:0 0 8px}
+.daily .dn small{font-size:13px;font-weight:700;opacity:.8;margin-left:6px}
+.daily .stamps{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 0}
+.daily .stamp7{display:flex;flex-direction:column;align-items:center;min-width:34px;font-size:11px;font-weight:700;opacity:.85}
+.daily .stamp7 span{width:30px;height:30px;border-radius:50%;border:2px dashed rgba(255,240,216,.45);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:2px}
+.daily .stamp7.ok span{border:2px solid #ffd54a;background:#ffd54a;color:#2a1700}
+.daily .stamp7.today span{border-color:#fff}
+
+/* Adventure menu: quiet stone-and-brass frames echo the sky realm. */
+#modes{align-items:stretch;gap:10px}
+#modes .chip{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:relative;min-width:0;padding:18px 14px 16px;border-color:#789086;background:linear-gradient(155deg,#243e49,#102937);box-shadow:inset 0 0 0 3px #0b1c2866;line-height:1.6}
+#modes .mode-title{display:block;color:var(--gold);font-size:14px;letter-spacing:.02em;margin-bottom:4px}
+#modes .mode-title::before{content:'◆';display:block;font-size:14px;color:#a7bdb0;margin-bottom:8px}
+#modes .chip[aria-pressed="true"]{background:linear-gradient(155deg,#3c5149,#203b3e);border-color:var(--gold);box-shadow:inset 0 0 0 3px #efcf8815,0 0 16px #efcf8812}
+#modes .chip[aria-pressed="true"] .mode-title::before{color:var(--gold)}
+#modes .chip:disabled{opacity:1;border-color:#536971;background:linear-gradient(155deg,#1b303e,#10232f);cursor:not-allowed}
+#modes .chip:disabled .mode-title{color:#b6b8a4}
+#modes .chip:disabled small{color:#b3c1bf}
+#modes .mode-note{margin-top:10px;padding-top:9px;border-top:1px solid #78908655;font-size:11px;line-height:1.7;opacity:1;overflow-wrap:anywhere}
+#daily{background:linear-gradient(135deg,#233c42ee,#122b35f5);border:1px solid #8f7950;box-shadow:inset 0 0 0 3px #0b192455,0 8px 22px #0002;padding:16px 18px}
+#daily .dh{font-size:14px;color:var(--gold);letter-spacing:.06em;margin-bottom:8px}
+#daily .dn{font-size:21px;color:var(--ink)}
+#daily .dn small{font-size:11px;color:var(--sub);font-weight:500}
+#daily .ds{font-size:12px;font-weight:500;color:var(--sub)}
+#daily .dbar{height:6px;border-radius:2px;background:#081d2c;margin-bottom:10px}
+#daily .dbar i{border-radius:2px;background:linear-gradient(90deg,#9e8553,#efcf88)}
+#daily.done .dbar i{background:linear-gradient(90deg,#4a9e88,#b1df9b)}
+#daily .stamp7 span{border-color:#8e9d87;border-width:1px;background:#102737}
+#daily .stamp7.ok span{border:1px solid var(--gold);background:#d8bd7f;color:#23312a}
+#daily .stamp7.today span{border-color:var(--gold);box-shadow:0 0 0 2px #efcf8818}
+#jobs .abnote{line-height:1.8;color:var(--sub)}
+#jobs .slot{background:#142d3b;border-color:#789086}
+#jobs .slot.full{background:linear-gradient(145deg,#39344c,#242c40);border-color:#aa96bb}
+@media(max-width:699px){
+  #modes{grid-template-columns:1fr}
+  #modes .chip{padding:12px 14px}
+  #modes .mode-title::before{display:inline;margin-right:8px;font-size:10px}
+  #modes .mode-note{margin-top:8px;padding-top:7px}
+}
